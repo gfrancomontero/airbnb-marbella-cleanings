@@ -9,24 +9,18 @@ interface Reservation {
   uid: string;
 }
 
-function parseICalDate(dateStr: string): Date {
+/**
+ * Parses iCal date format into an ISO date string (YYYY-MM-DD).
+ * We return just the date string to avoid timezone issues.
+ * iCal dates with VALUE=DATE are "floating" dates, not tied to any timezone.
+ */
+function parseICalDate(dateStr: string): string {
   // Handle ICAL date format: YYYYMMDD or YYYYMMDDTHHMMSSZ
-  if (dateStr.includes('T')) {
-    // Full datetime
-    const year = parseInt(dateStr.slice(0, 4));
-    const month = parseInt(dateStr.slice(4, 6)) - 1;
-    const day = parseInt(dateStr.slice(6, 8));
-    const hour = parseInt(dateStr.slice(9, 11));
-    const minute = parseInt(dateStr.slice(11, 13));
-    const second = parseInt(dateStr.slice(13, 15));
-    return new Date(Date.UTC(year, month, day, hour, minute, second));
-  } else {
-    // Date only
-    const year = parseInt(dateStr.slice(0, 4));
-    const month = parseInt(dateStr.slice(4, 6)) - 1;
-    const day = parseInt(dateStr.slice(6, 8));
-    return new Date(year, month, day);
-  }
+  // We only care about the date part, ignore time
+  const year = dateStr.slice(0, 4);
+  const month = dateStr.slice(4, 6);
+  const day = dateStr.slice(6, 8);
+  return `${year}-${month}-${day}`;
 }
 
 function parseICalContent(icalText: string): Reservation[] {
@@ -62,14 +56,12 @@ function parseICalContent(icalText: string): Reservation[] {
       if (line.startsWith('DTSTART')) {
         const value = line.split(':')[1];
         if (value) {
-          const date = parseICalDate(value);
-          currentEvent.start = date.toISOString();
+          currentEvent.start = parseICalDate(value);
         }
       } else if (line.startsWith('DTEND')) {
         const value = line.split(':')[1];
         if (value) {
-          const date = parseICalDate(value);
-          currentEvent.end = date.toISOString();
+          currentEvent.end = parseICalDate(value);
         }
       } else if (line.startsWith('SUMMARY')) {
         currentEvent.summary = line.split(':').slice(1).join(':');
@@ -95,8 +87,8 @@ export async function GET() {
     const icalText = await response.text();
     const reservations = parseICalContent(icalText);
     
-    // Sort by end date
-    reservations.sort((a, b) => new Date(a.end).getTime() - new Date(b.end).getTime());
+    // Sort by end date (string comparison works for YYYY-MM-DD format)
+    reservations.sort((a, b) => a.end.localeCompare(b.end));
     
     return NextResponse.json({ 
       reservations,
@@ -110,4 +102,3 @@ export async function GET() {
     );
   }
 }
-

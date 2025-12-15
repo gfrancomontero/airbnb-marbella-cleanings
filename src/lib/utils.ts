@@ -1,51 +1,81 @@
 import { Reservation, CleaningEvent } from './types';
 
 /**
+ * Parses a date string (YYYY-MM-DD) into date components.
+ * This avoids timezone issues by not using Date object for parsing.
+ */
+function parseDateString(dateStr: string): { year: number; month: number; day: number } {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  return { year, month: month - 1, day }; // month is 0-indexed for Date constructor
+}
+
+/**
+ * Creates a Date object for display purposes.
+ * Uses local timezone at noon to ensure correct date display.
+ */
+function createDisplayDate(dateStr: string): Date {
+  const { year, month, day } = parseDateString(dateStr);
+  return new Date(year, month, day, 12, 0, 0); // noon to avoid DST issues
+}
+
+/**
+ * Gets today's date as YYYY-MM-DD string for comparison.
+ */
+function getTodayString(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Calculates the difference in days between two date strings.
+ */
+function daysDifference(dateStr1: string, dateStr2: string): number {
+  const d1 = parseDateString(dateStr1);
+  const d2 = parseDateString(dateStr2);
+  
+  const date1 = Date.UTC(d1.year, d1.month, d1.day);
+  const date2 = Date.UTC(d2.year, d2.month, d2.day);
+  
+  return Math.round((date1 - date2) / (1000 * 60 * 60 * 24));
+}
+
+/**
  * Converts reservations into cleaning events.
  * Each cleaning happens on the checkout date (end date) of a reservation.
  */
 export function getCleaningsFromReservations(reservations: Reservation[]): CleaningEvent[] {
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const todayStr = getTodayString();
   
   // Filter reservations that end today or in the future
-  const futureReservations = reservations.filter(r => {
-    const endDate = new Date(r.end);
-    return endDate >= today;
-  });
+  const futureReservations = reservations.filter(r => r.end >= todayStr);
   
   // Sort by end date
-  futureReservations.sort((a, b) => 
-    new Date(a.end).getTime() - new Date(b.end).getTime()
-  );
+  futureReservations.sort((a, b) => a.end.localeCompare(b.end));
   
   const cleanings: CleaningEvent[] = [];
   
   for (let i = 0; i < futureReservations.length; i++) {
     const reservation = futureReservations[i];
-    const endDate = new Date(reservation.end);
-    
-    // Normalize to local date (checkout date)
-    const checkoutDate = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
-    
-    // Create cleaning date with 11 AM time for display
-    const cleaningDate = new Date(checkoutDate);
-    cleaningDate.setHours(11, 0, 0, 0);
-    
-    const diffTime = checkoutDate.getTime() - today.getTime();
-    const daysFromNow = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    const checkoutDateStr = reservation.end;
+    const daysFromNow = daysDifference(checkoutDateStr, todayStr);
     
     // Check for gap after this cleaning
     const { hasGapAfter, gapDays } = calculateGap(
       futureReservations,
       i,
-      checkoutDate,
+      checkoutDateStr,
       daysFromNow
     );
     
+    // Create display date (for formatting)
+    const displayDate = createDisplayDate(checkoutDateStr);
+    
     cleanings.push({
-      date: cleaningDate,
-      formattedDate: formatDate(cleaningDate),
+      date: displayDate,
+      formattedDate: formatDate(displayDate),
       formattedTime: '11:00 - 15:00',
       isToday: daysFromNow === 0,
       isTomorrow: daysFromNow === 1,
@@ -65,7 +95,7 @@ export function getCleaningsFromReservations(reservations: Reservation[]): Clean
 function calculateGap(
   reservations: Reservation[],
   currentIndex: number,
-  checkoutDate: Date,
+  checkoutDateStr: string,
   daysFromNow: number
 ): { hasGapAfter: boolean; gapDays: number } {
   let hasGapAfter = false;
@@ -73,18 +103,10 @@ function calculateGap(
   
   if (currentIndex < reservations.length - 1) {
     const nextReservation = reservations[currentIndex + 1];
-    const nextStart = new Date(nextReservation.start);
-    
-    // Normalize to midnight for proper day comparison
-    const nextCheckinDate = new Date(
-      nextStart.getFullYear(),
-      nextStart.getMonth(),
-      nextStart.getDate()
-    );
+    const nextCheckinStr = nextReservation.start;
     
     // Gap is the number of days between checkout and next checkin
-    const gapTime = nextCheckinDate.getTime() - checkoutDate.getTime();
-    gapDays = Math.round(gapTime / (1000 * 60 * 60 * 24));
+    gapDays = daysDifference(nextCheckinStr, checkoutDateStr);
     
     // If there's 1+ day gap and it's within the next 10 days, mark as alert
     if (gapDays >= 1 && daysFromNow <= 10) {
