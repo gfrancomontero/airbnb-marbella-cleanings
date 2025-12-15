@@ -10,7 +10,6 @@ import {
   GapAlerts,
   CleaningsList,
   RefreshButton,
-  HistoryLink,
 } from '@/components';
 
 export default function Home() {
@@ -47,7 +46,7 @@ export default function Home() {
         <RefreshButton loading={loading} onRefresh={refresh} />
 
         {/* Link to past cleanings */}
-        <HistoryLink />
+        {/* <HistoryLink /> */}
       </div>
     </main>
   );
