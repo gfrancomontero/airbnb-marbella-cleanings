@@ -89,6 +89,128 @@ export function getCleaningsFromReservations(reservations: Reservation[]): Clean
 }
 
 /**
+ * Gets past cleanings from reservations (cleanings that already happened).
+ */
+export function getPastCleaningsFromReservations(reservations: Reservation[]): CleaningEvent[] {
+  const todayStr = getTodayString();
+  
+  // Filter reservations that ended before today
+  const pastReservations = reservations.filter(r => r.end < todayStr);
+  
+  // Sort by end date (most recent first)
+  pastReservations.sort((a, b) => b.end.localeCompare(a.end));
+  
+  const cleanings: CleaningEvent[] = [];
+  
+  for (const reservation of pastReservations) {
+    const checkoutDateStr = reservation.end;
+    const daysFromNow = daysDifference(checkoutDateStr, todayStr);
+    const displayDate = createDisplayDate(checkoutDateStr);
+    
+    cleanings.push({
+      date: displayDate,
+      formattedDate: formatDate(displayDate),
+      formattedTime: '11:00 - 15:00',
+      isToday: false,
+      isTomorrow: false,
+      daysFromNow,
+      hasGapAfter: false,
+      gapDays: 0,
+    });
+  }
+  
+  return cleanings;
+}
+
+/**
+ * Represents a half-month period with its cleanings.
+ */
+export interface HalfMonthPeriod {
+  label: string;
+  startDate: Date;
+  endDate: Date;
+  cleanings: CleaningEvent[];
+}
+
+/**
+ * Generates half-month periods for the past year.
+ */
+export function generateHalfMonthPeriods(): HalfMonthPeriod[] {
+  const now = new Date();
+  const currentDay = now.getDate();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+  
+  const periods: HalfMonthPeriod[] = [];
+  
+  // Start with current half-month (partial)
+  let year = currentYear;
+  let month = currentMonth;
+  let isFirstHalf = currentDay <= 15;
+  
+  // If we're in the first half, start from the first half
+  // If we're in the second half, start from the second half
+  
+  // Generate 24 half-month periods (1 year)
+  for (let i = 0; i < 24; i++) {
+    const startDay = isFirstHalf ? 1 : 16;
+    const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+    const endDay = isFirstHalf ? 15 : lastDayOfMonth;
+    
+    const startDate = new Date(year, month, startDay, 12, 0, 0);
+    const endDate = new Date(year, month, endDay, 12, 0, 0);
+    
+    // Format label
+    const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const label = `${startDay} - ${endDay} ${monthNames[month]} ${year}`;
+    
+    periods.push({
+      label,
+      startDate,
+      endDate,
+      cleanings: [],
+    });
+    
+    // Move to previous half-month
+    if (isFirstHalf) {
+      // Go to previous month's second half
+      month--;
+      if (month < 0) {
+        month = 11;
+        year--;
+      }
+      isFirstHalf = false;
+    } else {
+      // Go to same month's first half
+      isFirstHalf = true;
+    }
+  }
+  
+  return periods;
+}
+
+/**
+ * Assigns cleanings to their respective half-month periods.
+ */
+export function assignCleaningsToPeriods(
+  periods: HalfMonthPeriod[],
+  cleanings: CleaningEvent[]
+): HalfMonthPeriod[] {
+  return periods.map(period => {
+    const periodCleanings = cleanings.filter(cleaning => {
+      const cleaningTime = cleaning.date.getTime();
+      return cleaningTime >= period.startDate.getTime() && 
+             cleaningTime <= period.endDate.getTime() + 24 * 60 * 60 * 1000; // Include end day
+    });
+    
+    return {
+      ...period,
+      cleanings: periodCleanings,
+    };
+  });
+}
+
+/**
  * Calculates if there's a gap after a cleaning that could allow
  * for a last-minute booking (potential extra cleaning).
  */
