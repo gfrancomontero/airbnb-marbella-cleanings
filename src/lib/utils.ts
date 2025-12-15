@@ -56,7 +56,7 @@ export function getCleaningsFromReservations(reservations: Reservation[]): Clean
     cleanings.push({
       date: cleaningDate,
       formattedDate: formatDate(cleaningDate),
-      formattedTime: '11:00 AM - 3:00 PM',
+      formattedTime: '11:00 - 15:00',
       isToday: daysFromNow === 0,
       isTomorrow: daysFromNow === 1,
       daysFromNow,
@@ -75,7 +75,7 @@ export function formatDate(date: Date): string {
     month: 'long',
     day: 'numeric',
   };
-  return date.toLocaleDateString('en-US', options);
+  return date.toLocaleDateString('es-ES', options);
 }
 
 export function formatShortDate(date: Date): string {
@@ -84,12 +84,12 @@ export function formatShortDate(date: Date): string {
     month: 'short',
     day: 'numeric',
   };
-  return date.toLocaleDateString('en-US', options);
+  return date.toLocaleDateString('es-ES', options);
 }
 
 export function getDayLabel(daysFromNow: number): string {
-  if (daysFromNow === 0) return 'Today';
-  if (daysFromNow === 1) return 'Tomorrow';
-  if (daysFromNow < 7) return `In ${daysFromNow} days`;
+  if (daysFromNow === 0) return 'Hoy';
+  if (daysFromNow === 1) return 'Mañana';
+  if (daysFromNow < 7) return `En ${daysFromNow} días`;
   return '';
 }

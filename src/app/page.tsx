@@ -20,10 +20,10 @@ export default function Home() {
       const data: CalendarData = await response.json();
       const cleaningEvents = getCleaningsFromReservations(data.reservations);
       setCleanings(cleaningEvents);
-      setLastUpdated(new Date().toLocaleTimeString());
+      setLastUpdated(new Date().toLocaleTimeString('es-ES'));
       setError(null);
     } catch (err) {
-      setError('Unable to load calendar data');
+      setError('No se pudo cargar el calendario');
       console.error(err);
     } finally {
       setLoading(false);
@@ -50,7 +50,7 @@ export default function Home() {
             <div className="absolute inset-0 rounded-full border-3 border-teal-200"></div>
             <div className="absolute inset-0 rounded-full border-3 border-teal-500 border-t-transparent animate-spin"></div>
           </div>
-          <p className="text-slate-600 text-xs font-medium tracking-wide">Loading your schedule...</p>
+          <p className="text-slate-600 text-xs font-medium tracking-wide">Cargando horario...</p>
         </div>
       </div>
     );
@@ -68,10 +68,10 @@ export default function Home() {
               </svg>
             </div>
             <h1 className="text-lg font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-              Marbella Cleanings
+              Limpiezas Marbella
             </h1>
           </div>
-          <p className="text-slate-500 text-[10px]">Airbnb cleaning schedule • Updated {lastUpdated || 'just now'}</p>
+          <p className="text-slate-500 text-[10px]">Calendario de limpiezas Airbnb • Actualizado {lastUpdated || 'ahora'}</p>
         </div>
       </header>
 
@@ -86,7 +86,7 @@ export default function Home() {
             <div>
               <p className="text-rose-800 text-xs font-medium">{error}</p>
               <button onClick={fetchCalendar} className="text-rose-600 text-[10px] hover:underline">
-                Try again
+                Reintentar
               </button>
             </div>
           </div>
@@ -102,8 +102,8 @@ export default function Home() {
                 </svg>
               </div>
               <div>
-                <h2 className="text-amber-900 font-bold text-xs">⚠️ Possible Last-Minute Bookings</h2>
-                <p className="text-amber-700 text-[10px]">Stay alert - gaps in the schedule!</p>
+                <h2 className="text-amber-900 font-bold text-xs">⚠️ Posibles Reservas de Última Hora</h2>
+                <p className="text-amber-700 text-[10px]">¡Atención - huecos en el calendario!</p>
               </div>
             </div>
             <div className="space-y-2">
@@ -111,7 +111,7 @@ export default function Home() {
                 <div key={index} className="bg-white/60 rounded-lg px-3 py-2">
                   <p className="text-slate-800 text-xs font-medium">{alert.formattedDate}</p>
                   <p className="text-amber-600 text-[10px] font-semibold">
-                    {alert.gapDays} night{alert.gapDays > 1 ? 's' : ''} gap → possible extra clean on {new Date(alert.date.getTime() + alert.gapDays * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}!
+                    {alert.gapDays} noche{alert.gapDays > 1 ? 's' : ''} libre → ¡posible limpieza extra el {new Date(alert.date.getTime() + alert.gapDays * 24 * 60 * 60 * 1000).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })}!
                   </p>
                 </div>
               ))}
@@ -128,21 +128,21 @@ export default function Home() {
             <div className="relative">
               <div className="flex items-center gap-1.5 mb-1.5">
                 <span className="bg-white/20 backdrop-blur px-2 py-0.5 rounded-full text-[10px] font-medium">
-                  Next Cleaning
+                  Próxima Limpieza
                 </span>
                 {nextCleaning.isToday && (
                   <span className="bg-white text-teal-600 px-2 py-0.5 rounded-full text-[10px] font-bold animate-pulse">
-                    TODAY
+                    HOY
                   </span>
                 )}
                 {nextCleaning.isTomorrow && (
                   <span className="bg-white/90 text-teal-600 px-2 py-0.5 rounded-full text-[10px] font-bold">
-                    TOMORROW
+                    MAÑANA
                   </span>
                 )}
               </div>
               
-              <h2 className="text-xl font-bold mb-0.5 tracking-tight">
+              <h2 className="text-xl font-bold mb-0.5 tracking-tight capitalize">
                 {nextCleaning.formattedDate}
               </h2>
               <p className="text-sm text-white/90 font-medium">
@@ -159,7 +159,7 @@ export default function Home() {
                 <div className="mt-3 bg-amber-400/30 backdrop-blur rounded-lg px-3 py-1.5 inline-flex items-center gap-1.5">
                   <span className="text-sm">⚠️</span>
                   <span className="text-[10px] font-medium">
-                    {nextCleaning.gapDays} night gap - possible extra clean!
+                    {nextCleaning.gapDays} noche{nextCleaning.gapDays > 1 ? 's' : ''} libre - ¡posible limpieza extra!
                   </span>
                 </div>
               )}
@@ -170,9 +170,9 @@ export default function Home() {
         {/* Upcoming Cleanings List */}
         <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 shadow-md shadow-slate-100 border border-white">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-bold text-slate-800">Upcoming Cleanings</h2>
+            <h2 className="text-sm font-bold text-slate-800">Próximas Limpiezas</h2>
             <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
-              Next 10
+              Siguientes 10
             </span>
           </div>
           
@@ -183,7 +183,7 @@ export default function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
-              <p className="text-slate-500 text-xs">No more upcoming cleanings</p>
+              <p className="text-slate-500 text-xs">No hay más limpiezas programadas</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -210,7 +210,7 @@ export default function Home() {
                         {cleaning.date.getDate()}
                       </div>
                       <div>
-                        <p className={`text-xs font-semibold ${
+                        <p className={`text-xs font-semibold capitalize ${
                           cleaning.isToday || cleaning.isTomorrow ? 'text-slate-900' : 'text-slate-700'
                         }`}>
                           {cleaning.formattedDate}
@@ -228,12 +228,12 @@ export default function Home() {
                       )}
                       {cleaning.isToday && (
                         <span className="bg-teal-500 text-white px-2 py-0.5 rounded-full text-[10px] font-bold">
-                          Today
+                          Hoy
                         </span>
                       )}
                       {cleaning.isTomorrow && (
                         <span className="bg-blue-500 text-white px-2 py-0.5 rounded-full text-[10px] font-bold">
-                          Tomorrow
+                          Mañana
                         </span>
                       )}
                       {!cleaning.isToday && !cleaning.isTomorrow && cleaning.daysFromNow < 7 && (
@@ -259,10 +259,10 @@ export default function Home() {
             <svg className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
-            {loading ? 'Refreshing...' : 'Refresh'}
+            {loading ? 'Actualizando...' : 'Actualizar'}
           </button>
           <p className="text-slate-400 text-[9px] mt-2">
-            Auto-refreshes every 5 minutes
+            Se actualiza automáticamente cada 5 minutos
           </p>
         </div>
       </div>
