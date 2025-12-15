@@ -6,4 +6,3 @@ export { GapAlerts } from './GapAlerts';
 export { CleaningCard } from './CleaningCard';
 export { CleaningsList } from './CleaningsList';
 export { RefreshButton } from './RefreshButton';
-// export { HistoryLink } from './HistoryLink';
