@@ -11,8 +11,8 @@ export default function HistorialPage() {
     return <LoadingSpinner />;
   }
 
-  // Filter out periods with no cleanings for cleaner display
-  const periodsWithCleanings = periods.filter(p => p.cleanings.length > 0);
+  // Count total past cleanings
+  const totalCleanings = periods.reduce((sum, p) => sum + p.cleanings.length, 0);
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-amber-50 to-orange-50">
@@ -59,7 +59,7 @@ export default function HistorialPage() {
             </h1>
           </div>
           <p className="text-slate-500 text-[10px]">
-            Historial del último año
+            Historial del último año • {totalCleanings} limpieza{totalCleanings !== 1 ? 's' : ''} registrada{totalCleanings !== 1 ? 's' : ''}
           </p>
         </div>
       </header>
@@ -72,12 +72,12 @@ export default function HistorialPage() {
           </div>
         )}
 
-        {/* No past cleanings */}
-        {!error && periodsWithCleanings.length === 0 && (
-          <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 shadow-md shadow-slate-100 border border-white text-center">
-            <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-slate-100 flex items-center justify-center">
+        {/* Info message when no past cleanings */}
+        {!error && totalCleanings === 0 && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
+            <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-amber-100 flex items-center justify-center">
               <svg
-                className="w-6 h-6 text-slate-400"
+                className="w-5 h-5 text-amber-500"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -86,87 +86,86 @@ export default function HistorialPage() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
             </div>
-            <p className="text-slate-500 text-sm">
-              No hay limpiezas anteriores registradas
+            <p className="text-amber-800 text-xs font-medium mb-1">
+              Aún no hay limpiezas anteriores
+            </p>
+            <p className="text-amber-600 text-[10px]">
+              El calendario de Airbnb solo muestra reservas futuras.
+              <br />
+              Las limpiezas aparecerán aquí cuando terminen las reservas.
             </p>
           </div>
         )}
 
-        {/* Periods with cleanings */}
-        {periodsWithCleanings.map((period, periodIndex) => (
-          <div
-            key={periodIndex}
-            className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 shadow-md shadow-slate-100 border border-white"
-          >
-            {/* Period header */}
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-bold text-slate-800">
-                {period.label}
-              </h2>
-              <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10px] font-medium">
-                {period.cleanings.length} limpieza{period.cleanings.length !== 1 ? 's' : ''}
-              </span>
-            </div>
-
-            {/* Cleanings in this period */}
-            <div className="space-y-2">
-              {period.cleanings.map((cleaning, cleaningIndex) => (
+        {/* All periods */}
+        <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 shadow-md shadow-slate-100 border border-white">
+          <h2 className="text-sm font-bold text-slate-800 mb-3">
+            Períodos del último año
+          </h2>
+          <div className="space-y-2">
+            {periods.map((period, index) => (
+              <div key={index}>
+                {/* Period header */}
                 <div
-                  key={cleaningIndex}
-                  className="bg-slate-50 border border-slate-100 rounded-xl p-2.5"
+                  className={`rounded-xl p-3 ${
+                    period.cleanings.length > 0
+                      ? 'bg-amber-50 border border-amber-200'
+                      : 'bg-slate-50 border border-slate-100'
+                  }`}
                 >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-white text-slate-600 border border-slate-200 flex items-center justify-center font-bold text-xs">
-                      {cleaning.date.getDate()}
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-slate-700 capitalize">
-                        {cleaning.formattedDate}
-                      </p>
-                      <p className="text-slate-500 text-[10px]">
-                        {cleaning.formattedTime}
-                      </p>
-                    </div>
+                  <div className="flex items-center justify-between">
+                    <span
+                      className={`text-xs font-medium ${
+                        period.cleanings.length > 0
+                          ? 'text-amber-800'
+                          : 'text-slate-500'
+                      }`}
+                    >
+                      {period.label}
+                    </span>
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        period.cleanings.length > 0
+                          ? 'bg-amber-200 text-amber-700'
+                          : 'bg-slate-200 text-slate-500'
+                      }`}
+                    >
+                      {period.cleanings.length} limpieza{period.cleanings.length !== 1 ? 's' : ''}
+                    </span>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
 
-        {/* All periods (including empty ones) - collapsible summary */}
-        {periodsWithCleanings.length > 0 && (
-          <details className="bg-white/50 backdrop-blur-sm rounded-2xl border border-slate-200 overflow-hidden">
-            <summary className="px-4 py-3 cursor-pointer text-xs text-slate-500 hover:text-slate-700 transition-colors">
-              Ver todos los períodos ({periods.length} períodos)
-            </summary>
-            <div className="px-4 pb-4 space-y-1">
-              {periods.map((period, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between py-1.5 border-b border-slate-100 last:border-0"
-                >
-                  <span className="text-[10px] text-slate-600">
-                    {period.label}
-                  </span>
-                  <span
-                    className={`text-[10px] font-medium ${
-                      period.cleanings.length > 0
-                        ? 'text-amber-600'
-                        : 'text-slate-400'
-                    }`}
-                  >
-                    {period.cleanings.length} limpieza{period.cleanings.length !== 1 ? 's' : ''}
-                  </span>
+                  {/* Cleanings in this period */}
+                  {period.cleanings.length > 0 && (
+                    <div className="mt-2 space-y-1.5">
+                      {period.cleanings.map((cleaning, cleaningIndex) => (
+                        <div
+                          key={cleaningIndex}
+                          className="bg-white rounded-lg p-2 flex items-center gap-2"
+                        >
+                          <div className="w-6 h-6 rounded bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-[10px]">
+                            {cleaning.date.getDate()}
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-medium text-slate-700 capitalize">
+                              {cleaning.formattedDate}
+                            </p>
+                            <p className="text-[9px] text-slate-400">
+                              {cleaning.formattedTime}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
-          </details>
-        )}
+              </div>
+            ))}
+          </div>
+        </div>
 
         {/* Back button */}
         <div className="text-center pt-4">
@@ -194,4 +193,3 @@ export default function HistorialPage() {
     </main>
   );
 }
-
