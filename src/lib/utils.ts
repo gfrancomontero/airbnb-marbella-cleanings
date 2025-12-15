@@ -20,13 +20,16 @@ export function getCleaningsFromReservations(reservations: Reservation[]): Clean
   for (let i = 0; i < futureReservations.length; i++) {
     const reservation = futureReservations[i];
     const endDate = new Date(reservation.end);
-    const cleaningDate = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
     
-    // Set cleaning time to 11 AM
+    // Normalize to local date (checkout date)
+    const checkoutDate = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+    
+    // Create cleaning date with 11 AM time for display
+    const cleaningDate = new Date(checkoutDate);
     cleaningDate.setHours(11, 0, 0, 0);
     
-    const diffTime = cleaningDate.getTime() - today.getTime();
-    const daysFromNow = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffTime = checkoutDate.getTime() - today.getTime();
+    const daysFromNow = Math.round(diffTime / (1000 * 60 * 60 * 24));
     
     // Check for gap after this cleaning
     let hasGapAfter = false;
@@ -35,14 +38,17 @@ export function getCleaningsFromReservations(reservations: Reservation[]): Clean
     if (i < futureReservations.length - 1) {
       const nextReservation = futureReservations[i + 1];
       const nextStart = new Date(nextReservation.start);
-      const nextStartDate = new Date(nextStart.getFullYear(), nextStart.getMonth(), nextStart.getDate());
+      
+      // Normalize both to midnight for proper day comparison
+      const nextCheckinDate = new Date(nextStart.getFullYear(), nextStart.getMonth(), nextStart.getDate());
       
       // Gap is the number of days between checkout and next checkin
-      const gapTime = nextStartDate.getTime() - cleaningDate.getTime();
-      gapDays = Math.floor(gapTime / (1000 * 60 * 60 * 24));
+      // e.g., checkout Dec 20, checkin Dec 21 = 1 day gap (Dec 20 night is open)
+      const gapTime = nextCheckinDate.getTime() - checkoutDate.getTime();
+      gapDays = Math.round(gapTime / (1000 * 60 * 60 * 24));
       
-      // If there's 1-3 days gap and it's within the next 7 days, mark as potential last-minute booking
-      if (gapDays >= 1 && gapDays <= 3 && daysFromNow <= 7) {
+      // If there's 1+ day gap and it's within the next 10 days, mark as potential last-minute booking
+      if (gapDays >= 1 && daysFromNow <= 10) {
         hasGapAfter = true;
       }
     }
@@ -87,4 +93,3 @@ export function getDayLabel(daysFromNow: number): string {
   if (daysFromNow < 7) return `In ${daysFromNow} days`;
   return '';
 }
-
