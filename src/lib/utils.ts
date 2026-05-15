@@ -1,5 +1,33 @@
 import { Reservation, CleaningEvent } from './types';
 
+const LISTING_BADGE_PALETTES = [
+  'bg-teal-500/12 text-teal-900 border border-teal-200/80',
+  'bg-violet-500/12 text-violet-900 border border-violet-200/80',
+  'bg-amber-500/12 text-amber-900 border border-amber-200/80',
+  'bg-rose-500/12 text-rose-900 border border-rose-200/80',
+] as const;
+
+/** Deterministic accent classes for a listing label (hero/cards stay consistent). */
+export function getListingBadgeClasses(label: string): string {
+  let h = 0;
+  for (let i = 0; i < label.length; i++) {
+    h = (h << 5) - h + label.charCodeAt(i);
+    h |= 0;
+  }
+  const idx = Math.abs(h) % LISTING_BADGE_PALETTES.length;
+  return LISTING_BADGE_PALETTES[idx];
+}
+
+function groupReservationsByListing(reservations: Reservation[]): Map<string, Reservation[]> {
+  const map = new Map<string, Reservation[]>();
+  for (const r of reservations) {
+    const key = r.listingLabel.trim() || 'Apartamento';
+    if (!map.has(key)) map.set(key, []);
+    map.get(key)!.push(r);
+  }
+  return map;
+}
+
 /**
  * Parses a date string (YYYY-MM-DD) into date components.
  * This avoids timezone issues by not using Date object for parsing.
@@ -43,10 +71,14 @@ function daysDifference(dateStr1: string, dateStr2: string): number {
 }
 
 /**
- * Converts reservations into cleaning events.
+ * Converts reservations into cleaning events for a single listing.
  * Each cleaning happens on the checkout date (end date) of a reservation.
+ * Gap detection only considers consecutive reservations within this listing.
  */
-export function getCleaningsFromReservations(reservations: Reservation[]): CleaningEvent[] {
+export function getCleaningsFromReservations(
+  reservations: Reservation[],
+  listingLabel: string
+): CleaningEvent[] {
   const todayStr = getTodayString();
   
   // Filter reservations that end today or in the future
@@ -82,16 +114,39 @@ export function getCleaningsFromReservations(reservations: Reservation[]): Clean
       daysFromNow,
       hasGapAfter,
       gapDays,
+      listingLabel,
+      reservationUid: reservation.uid,
     });
   }
-  
+
   return cleanings;
+}
+
+/**
+ * Future cleanings across multiple listings: correct gaps per listing, merged chronologically.
+ */
+export function getCleaningsFromAllListings(reservations: Reservation[]): CleaningEvent[] {
+  const grouped = groupReservationsByListing(reservations);
+  const merged: CleaningEvent[] = [];
+  for (const [, rows] of grouped) {
+    const label = rows[0]?.listingLabel.trim() || 'Apartamento';
+    merged.push(...getCleaningsFromReservations(rows, label));
+  }
+  merged.sort((a, b) => {
+    const t = a.date.getTime() - b.date.getTime();
+    if (t !== 0) return t;
+    return a.listingLabel.localeCompare(b.listingLabel, 'es');
+  });
+  return merged;
 }
 
 /**
  * Gets past cleanings from reservations (cleanings that already happened).
  */
-export function getPastCleaningsFromReservations(reservations: Reservation[]): CleaningEvent[] {
+export function getPastCleaningsFromReservations(
+  reservations: Reservation[],
+  listingLabel: string
+): CleaningEvent[] {
   const todayStr = getTodayString();
   
   // Filter reservations that ended before today
@@ -116,10 +171,28 @@ export function getPastCleaningsFromReservations(reservations: Reservation[]): C
       daysFromNow,
       hasGapAfter: false,
       gapDays: 0,
+      listingLabel,
+      reservationUid: reservation.uid,
     });
   }
-  
+
   return cleanings;
+}
+
+/** Past cleanings across listings, most recent first within the merged sort. */
+export function getPastCleaningsFromAllListings(reservations: Reservation[]): CleaningEvent[] {
+  const grouped = groupReservationsByListing(reservations);
+  const merged: CleaningEvent[] = [];
+  for (const [, rows] of grouped) {
+    const label = rows[0]?.listingLabel.trim() || 'Apartamento';
+    merged.push(...getPastCleaningsFromReservations(rows, label));
+  }
+  merged.sort((a, b) => {
+    const t = b.date.getTime() - a.date.getTime();
+    if (t !== 0) return t;
+    return a.listingLabel.localeCompare(b.listingLabel, 'es');
+  });
+  return merged;
 }
 
 /**

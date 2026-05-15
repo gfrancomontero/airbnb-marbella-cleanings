@@ -1,8 +1,21 @@
 interface HeaderProps {
   lastUpdated: string | null;
+  listingLabels?: string[];
 }
 
-export function Header({ lastUpdated }: HeaderProps) {
+export function Header({ lastUpdated, listingLabels }: HeaderProps) {
+  const sortedLabels =
+    listingLabels && listingLabels.length > 0
+      ? [...listingLabels].sort((a, b) => a.localeCompare(b, 'es'))
+      : [];
+
+  const listingsSubtitle =
+    sortedLabels.length > 1
+      ? `${sortedLabels.length} alojamientos • ${sortedLabels.join(' · ')}`
+      : sortedLabels.length === 1
+        ? sortedLabels[0]
+        : null;
+
   return (
     <header className="pt-6 pb-4 px-4">
       <div className="max-w-md mx-auto">
@@ -13,6 +26,7 @@ export function Header({ lastUpdated }: HeaderProps) {
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              aria-hidden
             >
               <path
                 strokeLinecap="round"
@@ -22,9 +36,17 @@ export function Header({ lastUpdated }: HeaderProps) {
               />
             </svg>
           </div>
-          <div>
-            <p className="text-slate-500 text-[10px]">
+          <div className="min-w-0">
+            <p className="text-slate-500 text-[10px] leading-relaxed">
               Calendario de limpiezas para Ana.
+              {listingsSubtitle && (
+                <>
+                  <br />
+                  <span className="font-semibold text-slate-700">
+                    {listingsSubtitle}
+                  </span>
+                </>
+              )}
               <br />
               Actualizado hoy, a las {lastUpdated || 'ahora'}
             </p>

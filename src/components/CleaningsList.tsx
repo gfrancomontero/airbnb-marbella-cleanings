@@ -21,8 +21,11 @@ export function CleaningsList({ cleanings }: CleaningsListProps) {
         <EmptyState />
       ) : (
         <div className="space-y-2">
-          {cleanings.map((cleaning, index) => (
-            <CleaningCard key={index} cleaning={cleaning} />
+          {cleanings.map((cleaning) => (
+            <CleaningCard
+              key={`${cleaning.listingLabel}-${cleaning.reservationUid}-${cleaning.date.getTime()}`}
+              cleaning={cleaning}
+            />
           ))}
         </div>
       )}

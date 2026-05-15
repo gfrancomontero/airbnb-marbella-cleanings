@@ -28,17 +28,20 @@ export function HeroCard({ cleaning }: HeroCardProps) {
 
       <div className="relative">
         {/* Header badges */}
-        <div className="flex items-center gap-1.5 mb-1.5">
-          <span className="bg-white/20 backdrop-blur px-2 py-0.5 rounded-full text-[10px] font-medium">
+        <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+          <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-medium backdrop-blur-sm">
             Próxima Limpieza
           </span>
+          <span className="rounded-full border border-white/35 bg-white/15 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
+            {cleaning.listingLabel}
+          </span>
           {isToday && (
-            <span className={`bg-white ${badgeColors} px-2 py-0.5 rounded-full text-[10px] font-bold animate-pulse`}>
+            <span className={`rounded-full bg-white px-2 py-0.5 text-[10px] font-bold ${badgeColors}`}>
               ¡HOY!
             </span>
           )}
           {isTomorrow && (
-            <span className={`bg-white/90 ${badgeColors} px-2 py-0.5 rounded-full text-[10px] font-bold`}>
+            <span className={`rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold ${badgeColors}`}>
               MAÑANA
             </span>
           )}
@@ -72,7 +75,8 @@ export function HeroCard({ cleaning }: HeroCardProps) {
             <span className="text-sm">⚠️</span>
             <span className="text-[10px] font-medium">
               {cleaning.gapDays} noche{cleaning.gapDays > 1 ? 's' : ''} libre
-              entre reservas, el día {formatGapDate(cleaning.date, cleaning.gapDays)}
+              entre reservas ({cleaning.listingLabel}), el día{' '}
+              {formatGapDate(cleaning.date, cleaning.gapDays)}
               <br />
               ¡posible limpieza extra!
             </span>

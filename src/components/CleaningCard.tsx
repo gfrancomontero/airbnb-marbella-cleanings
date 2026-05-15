@@ -1,5 +1,5 @@
 import { CleaningEvent } from '@/lib/types';
-import { getDayLabel } from '@/lib/utils';
+import { getDayLabel, getListingBadgeClasses } from '@/lib/utils';
 
 interface CleaningCardProps {
   cleaning: CleaningEvent;
@@ -24,19 +24,26 @@ export function CleaningCard({ cleaning }: CleaningCardProps) {
 
   return (
     <div className={`relative rounded-xl p-2.5 transition-all ${cardClasses}`}>
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-2">
         {/* Left side: date box and info */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-start gap-2.5">
           <div
             className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${dateBoxClasses}`}
           >
             {cleaning.date.getDate()}
           </div>
-          <div>
+          <div className="min-w-0 flex-1">
+            <div className="mb-0.5 flex flex-wrap items-center gap-1">
+              <span
+                className={`inline-flex max-w-full truncate rounded-full px-1.5 py-0.5 text-[9px] font-bold ${getListingBadgeClasses(cleaning.listingLabel)}`}
+              >
+                {cleaning.listingLabel}
+              </span>
+            </div>
             <p className={`text-xs font-semibold capitalize ${textClasses}`}>
               {cleaning.formattedDate}
             </p>
-            <p className="text-slate-500 text-[10px]">{cleaning.formattedTime}</p>
+            <p className="text-[10px] text-slate-500">{cleaning.formattedTime}</p>
           </div>
         </div>
 

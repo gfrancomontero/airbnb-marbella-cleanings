@@ -18,7 +18,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "Limpiezas Marbella | Calendario Airbnb",
   description:
-    "Calendario de limpiezas para Ana. Gestiona las limpiezas de la propiedad Airbnb en Marbella con alertas de reservas de última hora.",
+    "Calendario de limpiezas para Ana. Gestiona los apartamentos Airbnb en Marbella con alertas de huecos y reservas de última hora.",
   keywords: [
     "limpieza",
     "Airbnb",
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     siteName: "Limpiezas Marbella",
     title: "Limpiezas Marbella | Calendario Airbnb",
     description:
-      "Calendario de limpiezas para la propiedad Airbnb en Marbella. Próximas limpiezas, alertas de huecos y historial.",
+      "Calendario de limpiezas para los apartamentos Airbnb en Marbella. Próximas limpiezas, alertas de huecos e historial.",
     images: [
       {
         url: "https://airbnbmarbella.vercel.app/og-image.png",
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "Limpiezas Marbella | Calendario Airbnb",
     description:
-      "Calendario de limpiezas para la propiedad Airbnb en Marbella.",
+      "Calendario de limpiezas para los apartamentos Airbnb en Marbella.",
   },
   appleWebApp: {
     capable: true,

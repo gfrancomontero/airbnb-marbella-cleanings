@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { CalendarData, CleaningEvent } from '@/lib/types';
-import { getCleaningsFromReservations } from '@/lib/utils';
+import { getCleaningsFromAllListings } from '@/lib/utils';
 
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
@@ -10,6 +10,7 @@ interface UseCalendarReturn {
   cleanings: CleaningEvent[];
   loading: boolean;
   error: string | null;
+  warnings: string[];
   lastUpdated: string | null;
   refresh: () => Promise<void>;
 }
@@ -22,26 +23,35 @@ export function useCalendar(): UseCalendarReturn {
   const [cleanings, setCleanings] = useState<CleaningEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [warnings, setWarnings] = useState<string[]>([]);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
   const fetchCalendar = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       const response = await fetch('/api/calendar');
-      
+      const data: CalendarData & { error?: string } = await response.json();
+
       if (!response.ok) {
-        throw new Error('Failed to fetch calendar');
+        const msg =
+          typeof data.error === 'string'
+            ? data.error
+            : 'No se pudo cargar el calendario';
+        throw new Error(msg);
       }
-      
-      const data: CalendarData = await response.json();
-      const cleaningEvents = getCleaningsFromReservations(data.reservations);
-      
+
+      const cleaningEvents = getCleaningsFromAllListings(data.reservations);
+
       setCleanings(cleaningEvents);
+      setWarnings(Array.isArray(data.warnings) ? data.warnings : []);
       setLastUpdated(new Date().toLocaleTimeString('es-ES'));
       setError(null);
     } catch (err) {
-      setError('No se pudo cargar el calendario');
+      const msg =
+        err instanceof Error ? err.message : 'No se pudo cargar el calendario';
+      setError(msg);
+      setWarnings([]);
       console.error('Calendar fetch error:', err);
     } finally {
       setLoading(false);
@@ -60,6 +70,7 @@ export function useCalendar(): UseCalendarReturn {
     cleanings,
     loading,
     error,
+    warnings,
     lastUpdated,
     refresh: fetchCalendar,
   };

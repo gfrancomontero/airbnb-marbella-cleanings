@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { CalendarData } from '@/lib/types';
-import { 
-  getPastCleaningsFromReservations,
+import {
+  getPastCleaningsFromAllListings,
   generateHalfMonthPeriods,
   assignCleaningsToPeriods,
   HalfMonthPeriod,
@@ -35,7 +35,7 @@ export function usePastCleanings(): UsePastCleaningsReturn {
       }
       
       const data: CalendarData = await response.json();
-      const pastCleanings = getPastCleaningsFromReservations(data.reservations);
+      const pastCleanings = getPastCleaningsFromAllListings(data.reservations);
       
       // Generate half-month periods and assign cleanings
       const emptyPeriods = generateHalfMonthPeriods();

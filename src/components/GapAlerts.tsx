@@ -1,5 +1,5 @@
 import { CleaningEvent } from '@/lib/types';
-import { formatGapDate } from '@/lib/utils';
+import { formatGapDate, getListingBadgeClasses } from '@/lib/utils';
 
 interface GapAlertsProps {
   alerts: CleaningEvent[];
@@ -41,14 +41,19 @@ export function GapAlerts({ alerts }: GapAlertsProps) {
 
       {/* Alert list */}
       <div className="space-y-2">
-        {alerts.map((alert, index) => (
-          <div key={index} className="bg-white/60 rounded-lg px-3 py-2">
-            <p className="text-slate-800 text-xs font-medium">
-              {alert.formattedDate}
-            </p>
-            <p className="text-amber-600 text-[10px] font-semibold">
-              {alert.gapDays} noche{alert.gapDays > 1 ? 's' : ''} libre →
-              ¡posible limpieza extra el {formatGapDate(alert.date, alert.gapDays)}!
+        {alerts.map((alert) => (
+          <div key={`${alert.reservationUid}-${alert.date.getTime()}`} className="rounded-lg bg-white/60 px-3 py-2">
+            <div className="mb-1 flex flex-wrap items-center gap-1">
+              <span
+                className={`inline-flex rounded-full px-1.5 py-0.5 text-[9px] font-bold ${getListingBadgeClasses(alert.listingLabel)}`}
+              >
+                {alert.listingLabel}
+              </span>
+            </div>
+            <p className="text-xs font-medium text-slate-800">{alert.formattedDate}</p>
+            <p className="text-[10px] font-semibold text-amber-700">
+              {alert.gapDays} noche{alert.gapDays > 1 ? 's' : ''} libre → ¡posible limpieza extra el{' '}
+              {formatGapDate(alert.date, alert.gapDays)}!
             </p>
           </div>
         ))}

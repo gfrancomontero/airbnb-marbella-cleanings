@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePastCleanings } from '@/hooks/usePastCleanings';
 import { LoadingSpinner } from '@/components';
+import { getListingBadgeClasses } from '@/lib/utils';
 
 export default function HistorialPage() {
   const { periods, loading, error } = usePastCleanings();
@@ -141,16 +142,21 @@ export default function HistorialPage() {
                   {/* Cleanings in this period */}
                   {period.cleanings.length > 0 && (
                     <div className="mt-2 space-y-1.5">
-                      {period.cleanings.map((cleaning, cleaningIndex) => (
+                      {period.cleanings.map((cleaning) => (
                         <div
-                          key={cleaningIndex}
-                          className="bg-white rounded-lg p-2 flex items-center gap-2"
+                          key={`${cleaning.listingLabel}-${cleaning.reservationUid}-${cleaning.date.getTime()}`}
+                          className="flex items-start gap-2 rounded-lg bg-white p-2"
                         >
-                          <div className="w-6 h-6 rounded bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-[10px]">
+                          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-amber-100 text-[10px] font-bold text-amber-700">
                             {cleaning.date.getDate()}
                           </div>
-                          <div>
-                            <p className="text-[10px] font-medium text-slate-700 capitalize">
+                          <div className="min-w-0">
+                            <span
+                              className={`mb-0.5 inline-flex max-w-full truncate rounded-full px-1.5 py-0.5 text-[9px] font-bold ${getListingBadgeClasses(cleaning.listingLabel)}`}
+                            >
+                              {cleaning.listingLabel}
+                            </span>
+                            <p className="text-[10px] font-medium capitalize text-slate-700">
                               {cleaning.formattedDate}
                             </p>
                             <p className="text-[9px] text-slate-400">
