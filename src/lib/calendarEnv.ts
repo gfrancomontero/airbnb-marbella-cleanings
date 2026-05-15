@@ -20,7 +20,7 @@ export function getAirbnbCalendarSources(): AirbnbCalendarSource[] {
       label:
         process.env.AIRBNB_ICAL_LABEL_1?.trim() ||
         process.env.AIRBNB_ICAL_LABEL?.trim() ||
-        'Apartamento 1',
+        'Club Sierra',
     });
   }
 
@@ -28,7 +28,7 @@ export function getAirbnbCalendarSources(): AirbnbCalendarSource[] {
   if (secondary) {
     sources.push({
       url: secondary,
-      label: process.env.AIRBNB_ICAL_LABEL_2?.trim() || 'Apartamento 2',
+      label: process.env.AIRBNB_ICAL_LABEL_2?.trim() || 'Aloha Gardens',
     });
   }
 
